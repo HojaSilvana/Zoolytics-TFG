@@ -1,0 +1,57 @@
+<template>
+    <lightning-card title="Chat de incidencia" icon-name="utility:chat">
+        <div class="chat-wrapper">
+            <template if:true={hasMessages}>
+                <div class="messages" lwc:ref="messagesContainer">
+                    <template for:each={messages} for:item="item">
+                        <div key={item.id} class={item.containerClass}>
+                            <div class={item.bubbleClass}>
+                                <p>{item.message}</p>
+                                <div class={item.metaClass}>
+                                    <span>{item.authorName}</span>
+                                    <span>{item.formattedDate}</span>
+                                    <template if:true={item.isInternal}>
+                                        <lightning-badge class="internal-badge" label="Interno"></lightning-badge>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <template if:false={hasMessages}>
+                <div class="empty-state">
+                    Aun no hay mensajes. Escribe el primero.
+                </div>
+            </template>
+
+            <div class="composer">
+                <lightning-textarea
+                    name="message"
+                    label="Mensaje"
+                    value={draftMessage}
+                    onchange={handleDraftChange}
+                    max-length="32768"
+                ></lightning-textarea>
+
+                <div class="composer-actions">
+                    <lightning-input
+                        type="checkbox"
+                        name="isInternal"
+                        label="Mensaje interno"
+                        checked={isInternal}
+                        onchange={handleInternalChange}
+                    ></lightning-input>
+
+                    <lightning-button
+                        variant="brand"
+                        label="Enviar"
+                        onclick={handleSend}
+                        disabled={isSendDisabled}
+                    ></lightning-button>
+                </div>
+            </div>
+        </div>
+    </lightning-card>
+</template>

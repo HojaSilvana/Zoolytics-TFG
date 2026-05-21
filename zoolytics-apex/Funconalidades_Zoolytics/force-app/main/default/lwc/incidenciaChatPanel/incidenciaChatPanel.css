@@ -1,0 +1,85 @@
+.chat-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 24rem;
+}
+
+.messages {
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    background: #f3f3f3;
+    padding: 0.75rem;
+    overflow-y: auto;
+    max-height: 22rem;
+    min-height: 16rem;
+}
+
+.message-row {
+    display: flex;
+    margin-bottom: 0.6rem;
+}
+
+.message-row.from-web {
+    justify-content: flex-end;
+}
+
+.message-row.from-tech {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    max-width: 85%;
+    white-space: pre-wrap;
+    border: 1px solid transparent;
+}
+
+.message-bubble.from-tech {
+    background: #ecf3ff;
+    border-color: #95b7f2;
+}
+
+.message-bubble.from-web {
+    background: #fff1e8;
+    border-color: #f1b58e;
+}
+
+.message-bubble.is-internal {
+    box-shadow: inset 0 0 0 1px #7f8de1;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    font-size: 0.72rem;
+    color: #706e6b;
+}
+
+.composer {
+    border-top: 1px solid #dddbda;
+    padding-top: 0.75rem;
+}
+
+.composer-actions {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.empty-state {
+    border: 1px dashed #d8dde6;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    color: #706e6b;
+    background: #fafaf9;
+}
+
+.internal-badge {
+    --slds-c-badge-color-background: #ecebea;
+    --slds-c-badge-text-color: #3e3e3c;
+}

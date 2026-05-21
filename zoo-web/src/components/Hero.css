@@ -1,0 +1,173 @@
+.hero {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #000;
+}
+
+/* VIDEO */
+.video-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.video-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  transition: opacity 0.7s ease;
+  z-index: 1;
+  opacity: 0;
+}
+
+.video-bg.is-active {
+  opacity: 1;
+}
+
+
+/* OVERLAY */
+.overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.6),
+    rgba(0, 0, 0, 0.2)
+  );
+  z-index: 2;
+}
+
+/* CONTENIDO */
+.hero-content {
+  position: relative;
+  z-index: 3;
+  color: white;
+  max-width: 700px;
+  padding: 120px 80px;
+}
+
+/* TITULO */
+.hero-title {
+  font-size: 64px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.hero-kicker {
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 6px;
+}
+
+.hero-headline {
+  display: block;
+  font-size: 72px;
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -1.4px;
+}
+
+.hero-subheadline {
+  display: block;
+  margin-top: 10px;
+  font-size: 34px;
+  line-height: 1.05;
+  font-weight: 750;
+  letter-spacing: -0.8px;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--font-brand);
+}
+
+/* PALABRA DESTACADA */
+.hero-highlight {
+  background: linear-gradient(90deg, #f97316, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-park {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.hero-rio {
+  font-weight: 800;
+  background: linear-gradient(90deg, #22c55e, #06b6d4, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-initial {
+  font-weight: 850;
+  font-size: 1.06em;
+  letter-spacing: -0.8px;
+  text-shadow: 0 0 18px rgba(34, 197, 94, 0.18), 0 0 20px rgba(59, 130, 246, 0.14);
+}
+
+@media (max-width: 720px) {
+  .hero-headline {
+    font-size: 56px;
+  }
+  .hero-subheadline {
+    font-size: 28px;
+  }
+}
+
+/* TEXTO */
+.hero-content p {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #ccc;
+  line-height: 1.5;
+  max-width: 52ch;
+}
+
+/* BOTONES */
+.buttons {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.btn {
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
+}
+
+/* BOTON PRINCIPAL */
+.primary {
+  background: white;
+  color: rgb(67, 181, 88);
+  transition: all 0.3s ease;
+}
+
+.primary:hover {
+  background: #ddd;
+}
+
+/* BOTON SECUNDARIO */
+.secondary {
+  background: transparent;
+  border: 1px solid rgb(67, 181, 88);
+  color: white;
+}
+
+.secondary:hover {
+  background: rgba(255,255,255,0.1);
+}
+

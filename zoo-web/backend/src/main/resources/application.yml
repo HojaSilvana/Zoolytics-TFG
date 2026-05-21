@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    import: optional:file:.env[.properties],optional:file:.env.example[.properties]
+  application:
+    name: zoolytics-api
+
+salesforce:
+  instance-url: ${SALESFORCE_INSTANCE_URL}
+  client-id: ${SALESFORCE_CLIENT_ID}
+  client-secret: ${SALESFORCE_CLIENT_SECRET}
+  api-version: v62.0
