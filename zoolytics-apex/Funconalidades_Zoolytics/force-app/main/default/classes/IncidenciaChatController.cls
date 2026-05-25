@@ -1,5 +1,12 @@
 public with sharing class IncidenciaChatController {
     private static final String TECHNICIAN_DISPLAY_NAME = 'Tecnico de Biopark Rio Verde';
+    private static final String SYSTEM_AUTHOR_NAME = 'Sistema Zoolytics';
+    private static final Set<String> CLOSED_STATUS_VALUES = new Set<String>{
+        'resuelta',
+        'cerrada',
+        'resolved',
+        'closed'
+    };
 
     public class ChatMessageDTO {
         @AuraEnabled public Id id;
@@ -8,6 +15,7 @@ public with sharing class IncidenciaChatController {
         @AuraEnabled public Datetime createdDate;
         @AuraEnabled public Boolean isInternal;
         @AuraEnabled public Boolean isCurrentUser;
+        @AuraEnabled public Boolean isSystem;
 
         public ChatMessageDTO(Incidencia_mensaje__c source) {
             id = source.Id;
@@ -18,6 +26,18 @@ public with sharing class IncidenciaChatController {
             createdDate = source.CreatedDate;
             isInternal = source.esInterno__c;
             isCurrentUser = source.CreatedById == UserInfo.getUserId();
+            isSystem = false;
+        }
+
+        public ChatMessageDTO(String statusLabel) {
+            id = null;
+            message = 'La incidencia se ha marcado como ' + statusLabel
+                + '. El chat esta finalizado y no admite mas mensajes.';
+            authorName = SYSTEM_AUTHOR_NAME;
+            createdDate = System.now();
+            isInternal = false;
+            isCurrentUser = false;
+            isSystem = true;
         }
     }
 
@@ -26,6 +46,13 @@ public with sharing class IncidenciaChatController {
         if (incidenciaId == null) {
             throw new AuraHandledException('Debes indicar una incidencia.');
         }
+
+        Incidencia__c incidencia = [
+            SELECT Id, Estado__c
+            FROM Incidencia__c
+            WHERE Id = :incidenciaId
+            LIMIT 1
+        ];
 
         List<Incidencia_mensaje__c> rows = [
             SELECT Id, Mensaje__c, AutorNombre__c, esInterno__c, CreatedDate, CreatedById, CreatedBy.Name
@@ -38,6 +65,9 @@ public with sharing class IncidenciaChatController {
         List<ChatMessageDTO> result = new List<ChatMessageDTO>();
         for (Incidencia_mensaje__c row : rows) {
             result.add(new ChatMessageDTO(row));
+        }
+        if (isClosedStatus(incidencia.Estado__c)) {
+            result.add(new ChatMessageDTO(incidencia.Estado__c));
         }
         return result;
     }
@@ -53,11 +83,16 @@ public with sharing class IncidenciaChatController {
 
         // Validates that the record exists and is accessible for the running user.
         Incidencia__c existingIncidencia = [
-            SELECT Id
+            SELECT Id, Estado__c
             FROM Incidencia__c
             WHERE Id = :incidenciaId
             LIMIT 1
         ];
+        if (isClosedStatus(existingIncidencia.Estado__c)) {
+            throw new AuraHandledException(
+                'La incidencia esta ' + existingIncidencia.Estado__c + '. El chat esta cerrado.'
+            );
+        }
 
         Incidencia_mensaje__c newMessage = new Incidencia_mensaje__c(
             Incidencia__c = incidenciaId,
@@ -74,5 +109,12 @@ public with sharing class IncidenciaChatController {
             LIMIT 1
         ];
         return new ChatMessageDTO(insertedRow);
+    }
+
+    private static Boolean isClosedStatus(String status) {
+        if (String.isBlank(status)) {
+            return false;
+        }
+        return CLOSED_STATUS_VALUES.contains(status.trim().toLowerCase());
     }
 }

@@ -1,6 +1,13 @@
 @RestResource(urlMapping='/api/incidents/*/messages')
 global with sharing class IncidenciaChatRestApi {
     global class ApiBadRequestException extends Exception {}
+    private static final String SYSTEM_AUTHOR_NAME = 'Sistema Zoolytics';
+    private static final Set<String> CLOSED_STATUS_VALUES = new Set<String>{
+        'resuelta',
+        'cerrada',
+        'resolved',
+        'closed'
+    };
 
     global class MessageResponse {
         public String id;
@@ -8,6 +15,7 @@ global with sharing class IncidenciaChatRestApi {
         public Boolean isInternal;
         public Datetime createdAt;
         public String authorName;
+        public Boolean isSystem;
 
         public MessageResponse(Incidencia_mensaje__c source) {
             id = (String) source.Id;
@@ -17,6 +25,17 @@ global with sharing class IncidenciaChatRestApi {
             authorName = String.isBlank(source.AutorNombre__c)
                 ? (source.CreatedBy != null ? source.CreatedBy.Name : null)
                 : source.AutorNombre__c;
+            isSystem = false;
+        }
+
+        public MessageResponse(String statusLabel) {
+            id = null;
+            text = 'La incidencia se ha marcado como ' + statusLabel
+                + '. El chat esta finalizado y no admite mas mensajes.';
+            isInternal = false;
+            createdAt = System.now();
+            authorName = SYSTEM_AUTHOR_NAME;
+            isSystem = true;
         }
     }
 
@@ -24,6 +43,7 @@ global with sharing class IncidenciaChatRestApi {
     global static List<MessageResponse> getMessages() {
         Id incidenciaId = extractIncidentId();
         Boolean includeInternal = parseIncludeInternal(RestContext.request.params.get('includeInternal'));
+        Incidencia__c incidencia = queryIncident(incidenciaId);
 
         List<Incidencia_mensaje__c> rows;
         if (includeInternal) {
@@ -49,6 +69,9 @@ global with sharing class IncidenciaChatRestApi {
         for (Incidencia_mensaje__c row : rows) {
             response.add(new MessageResponse(row));
         }
+        if (isClosedStatus(incidencia.Estado__c)) {
+            response.add(new MessageResponse(incidencia.Estado__c));
+        }
         return response;
     }
 
@@ -65,12 +88,12 @@ global with sharing class IncidenciaChatRestApi {
         }
 
         // Validates that the incident exists and is visible to the running user.
-        Incidencia__c existingIncidencia = [
-            SELECT Id, Contacto__r.Name
-            FROM Incidencia__c
-            WHERE Id = :incidenciaId
-            LIMIT 1
-        ];
+        Incidencia__c existingIncidencia = queryIncident(incidenciaId);
+        if (isClosedStatus(existingIncidencia.Estado__c)) {
+            throw buildBadRequest(
+                'La incidencia esta ' + existingIncidencia.Estado__c + '. El chat esta cerrado.'
+            );
+        }
 
         Incidencia_mensaje__c newMessage = new Incidencia_mensaje__c(
             Incidencia__c = existingIncidencia.Id,
@@ -161,6 +184,22 @@ global with sharing class IncidenciaChatRestApi {
             return incidencia.Contacto__r.Name;
         }
         return 'Usuario web';
+    }
+
+    private static Incidencia__c queryIncident(Id incidenciaId) {
+        return [
+            SELECT Id, Estado__c, Contacto__r.Name
+            FROM Incidencia__c
+            WHERE Id = :incidenciaId
+            LIMIT 1
+        ];
+    }
+
+    private static Boolean isClosedStatus(String status) {
+        if (String.isBlank(status)) {
+            return false;
+        }
+        return CLOSED_STATUS_VALUES.contains(status.trim().toLowerCase());
     }
 
     private static ApiBadRequestException buildBadRequest(String message) {

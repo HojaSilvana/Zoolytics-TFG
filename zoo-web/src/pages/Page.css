@@ -212,6 +212,11 @@
   font-size: 14px;
 }
 
+.note-warning {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: rgba(245, 158, 11, 0.14);
+}
+
 .chat {
   margin-top: 6px;
   padding-top: 10px;
@@ -262,6 +267,11 @@
   background: rgba(59, 130, 246, 0.08);
 }
 
+.chat-msg.from-system {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.14);
+}
+
 .chat-meta {
   display: flex;
   justify-content: space-between;
@@ -301,6 +311,11 @@
 .chat-compose input:focus {
   border-color: rgba(249, 115, 22, 0.8);
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+}
+
+.chat-compose input:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
 }
 
 @media (max-width: 900px) {

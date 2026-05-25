@@ -6,6 +6,7 @@ import { listIncidentsByOwner, updateIncident } from "../utils/mockIncidents";
 import { listIncidentMessagesApi, sendIncidentMessageApi } from "../utils/api";
 
 const CHAT_REFRESH_MS = 8000;
+const CLOSED_STATUS_VALUES = new Set(["resuelta", "cerrada", "resolved", "closed"]);
 
 function formatDate(iso) {
   try {
@@ -40,20 +41,22 @@ function buildWebAuthorName(auth) {
 
 function normalizeMessage(raw) {
   const isInternal = Boolean(raw?.isInternal);
+  const isSystem = Boolean(raw?.isSystem);
   const rawAuthor = String(raw?.authorName || "").trim();
   const isWebAuthor =
     rawAuthor.toLowerCase().startsWith("empleado - ") ||
     rawAuthor.toLowerCase().startsWith("visitante - ");
 
-  const who = isWebAuthor ? rawAuthor : "Tecnico de Salesforce";
+  const who = isSystem ? "Sistema Zoolytics" : isWebAuthor ? rawAuthor : "Tecnico de Salesforce";
 
   return {
     id: raw?.id || newMessageId(),
     at: raw?.createdAt || new Date().toISOString(),
-    author: isWebAuthor && !isInternal ? "user" : "it",
+    author: isSystem ? "system" : isWebAuthor && !isInternal ? "user" : "it",
     text: raw?.text || "",
     who,
     isInternal,
+    isSystem,
   };
 }
 
@@ -82,6 +85,11 @@ export default function MisIncidencias() {
 
   const selected = items.find((i) => i.id === selectedId) || null;
   const canEdit = selected?.status === "Nueva";
+  const isSelectedClosed = CLOSED_STATUS_VALUES.has(String(selected?.status || "").toLowerCase());
+  const hasSystemClosedMessage = remoteMessages.some((m) => m.isSystem);
+  const isChatClosed = isSelectedClosed || hasSystemClosedMessage;
+  const closedChatText = remoteMessages.find((m) => m.isSystem)?.text
+    || "Esta incidencia esta finalizada. No se pueden enviar mas mensajes.";
 
   const onLogout = () => {
     clearAuth();
@@ -136,6 +144,7 @@ export default function MisIncidencias() {
 
   const sendMessage = async (text, isInternal = false) => {
     if (!selected) return;
+    if (isChatClosed) return;
     const t = String(text || "").trim();
     if (!t) return;
     setChatError("");
@@ -300,7 +309,9 @@ export default function MisIncidencias() {
                       {remoteMessages.map((m) => (
                         <div
                           key={m.id}
-                          className={`chat-msg ${m.author === "it" ? "from-it" : "from-user"}`}
+                          className={`chat-msg ${
+                            m.author === "system" ? "from-system" : m.author === "it" ? "from-it" : "from-user"
+                          }`}
                         >
                           <div className="chat-meta">
                             <span className="chat-who">{m.who}</span>
@@ -313,11 +324,13 @@ export default function MisIncidencias() {
                   )}
                 </div>
                 {chatError && <div className="note">{chatError}</div>}
+                {isChatClosed && <div className="note note-warning">{closedChatText}</div>}
 
                 <form
                   className="chat-compose"
                   onSubmit={async (e) => {
                     e.preventDefault();
+                    if (isChatClosed) return;
                     await sendMessage(message, false);
                     setMessage("");
                   }}
@@ -325,9 +338,14 @@ export default function MisIncidencias() {
                   <input
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Escribe un mensaje…"
+                    placeholder={isChatClosed ? "Incidencia finalizada (chat bloqueado)" : "Escribe un mensaje…"}
+                    disabled={isChatClosed}
                   />
-                  <button className="btn primary" type="submit" disabled={!message.trim() || chatSending}>
+                  <button
+                    className="btn primary"
+                    type="submit"
+                    disabled={isChatClosed || !message.trim() || chatSending}
+                  >
                     {chatSending ? "Enviando..." : "Enviar"}
                   </button>
                 </form>

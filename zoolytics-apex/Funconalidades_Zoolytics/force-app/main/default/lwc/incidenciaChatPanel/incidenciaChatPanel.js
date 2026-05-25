@@ -22,8 +22,7 @@ export default class IncidenciaChatPanel extends LightningElement {
             this.messages = data.map((item) => ({
                 ...item,
                 formattedDate: this.formatDate(item.createdDate),
-                containerClass: item.isCurrentUser ? "message-row mine" : "message-row",
-                bubbleClass: item.isCurrentUser ? "message-bubble mine" : "message-bubble"
+                ...this.getMessageUi(item)
             }));
             this.scrollToBottom();
         } else if (error) {
@@ -35,15 +34,30 @@ export default class IncidenciaChatPanel extends LightningElement {
         return this.messages.length > 0;
     }
 
+    get isChatClosed() {
+        return this.messages.some((item) => item.isSystem);
+    }
+
+    get closedBannerText() {
+        const closingMessage = this.messages.find((item) => item.isSystem);
+        return closingMessage?.message || "La incidencia esta finalizada y el chat se ha bloqueado.";
+    }
+
     get isSendDisabled() {
-        return this.sending || !this.draftMessage || !this.draftMessage.trim();
+        return this.isChatClosed || this.sending || !this.draftMessage || !this.draftMessage.trim();
     }
 
     handleDraftChange(event) {
+        if (this.isChatClosed) {
+            return;
+        }
         this.draftMessage = event.target.value;
     }
 
     handleInternalChange(event) {
+        if (this.isChatClosed) {
+            return;
+        }
         this.isInternal = event.target.checked;
     }
 
@@ -67,6 +81,25 @@ export default class IncidenciaChatPanel extends LightningElement {
         } finally {
             this.sending = false;
         }
+    }
+
+    getMessageUi(item) {
+        if (item.isSystem) {
+            return {
+                containerClass: "message-row system",
+                bubbleClass: "message-bubble system",
+                metaClass: "meta meta-system"
+            };
+        }
+
+        const fromWeb = item.isCurrentUser;
+        return {
+            containerClass: fromWeb ? "message-row from-web" : "message-row from-tech",
+            bubbleClass: fromWeb
+                ? `message-bubble from-web${item.isInternal ? " is-internal" : ""}`
+                : "message-bubble from-tech",
+            metaClass: fromWeb ? "meta meta-web" : "meta meta-tech"
+        };
     }
 
     formatDate(value) {

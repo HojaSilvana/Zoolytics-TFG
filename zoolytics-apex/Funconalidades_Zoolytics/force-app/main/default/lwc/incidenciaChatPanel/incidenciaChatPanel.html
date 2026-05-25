@@ -26,6 +26,12 @@
                 </div>
             </template>
 
+            <template if:true={isChatClosed}>
+                <div class="chat-closed-banner">
+                    {closedBannerText}
+                </div>
+            </template>
+
             <div class="composer">
                 <lightning-textarea
                     name="message"
@@ -33,6 +39,7 @@
                     value={draftMessage}
                     onchange={handleDraftChange}
                     max-length="32768"
+                    disabled={isChatClosed}
                 ></lightning-textarea>
 
                 <div class="composer-actions">
@@ -42,6 +49,7 @@
                         label="Mensaje interno"
                         checked={isInternal}
                         onchange={handleInternalChange}
+                        disabled={isChatClosed}
                     ></lightning-input>
 
                     <lightning-button
