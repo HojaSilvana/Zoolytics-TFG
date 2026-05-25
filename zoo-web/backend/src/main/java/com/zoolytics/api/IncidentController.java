@@ -8,7 +8,12 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5174"})
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://zoolytics-tfg.vercel.app",
+        "https://zoolytics-h1283swc1-hojasilvanas-projects.vercel.app"
+})
 public class IncidentController {
 
     private final SalesforceService salesforceService;
